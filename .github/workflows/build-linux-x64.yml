@@ -51,7 +51,7 @@ jobs:
           echo "Using Directory $(pwd)"
       - name: Packing into zip file
         run: |
-          zip -r telegram-bot-api-linux_${{matrix.arch}}.zip bin
+          zip -r telegram-bot-api-linux_$(uname -m).zip bin
       - name: Publish Build
         id: release
         uses: ncipollo/release-action@v1
@@ -65,4 +65,4 @@ jobs:
           token: ${{ secrets.ACCESS_TOKEN }}
           name: "Build (${{github.sha}})"
           tag: "build"
-          artifacts: "telegram-bot-api-linux_${{matrix.arch}}.zip"
+          artifacts: "telegram-bot-api-linux_$(uname -m).zip"
