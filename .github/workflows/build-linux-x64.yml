@@ -1,0 +1,68 @@
+name: Build Telegram API on Linux
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-linux:
+    name: Build Telegram
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Installing make
+        run: |
+          sudo apt-get install make -y
+      - name: Installing zlib1g-dev
+        run: |
+          sudo apt-get install zlib1g-dev -y
+      - name: Installing libssl-dev
+        run: |
+          sudo apt-get install libssl-dev -y
+      - name: Installing gperf
+        run: |
+          sudo apt-get install gperf -y
+      - name: Installing cmake
+        run: |
+          sudo apt-get install cmake -y
+      - name: Installing g++
+        run: |
+          sudo apt-get install g++ -y
+      - name: Installing zip
+        run: |
+          # if zip is not found
+          if [ ! -x "$(command -v zip)" ]; then
+              sudo apt-get update && sudo apt-get install -y zip --no-install-recommends
+          fi
+      - name: Pulling Submodules
+        run: |
+          git submodule update --init --recursive
+      - name: Building Telegram Server
+        run: |
+          cd telegram-bot-api
+          ls -la ../td
+          rm -rf build
+          mkdir build
+          cd build
+          echo "Using Directory $(pwd)"
+          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=../.. ../..
+          cmake --build . --target install
+          cd ../
+          echo "Using Directory $(pwd)"
+      - name: Packing into zip file
+        run: |
+          zip -r telegram-bot-api-linux_${{matrix.arch}}.zip bin
+      - name: Publish Build
+        id: release
+        uses: ncipollo/release-action@v1
+        with:
+          prerelease: true
+          body: "Build ini berdasarkan commit (${{ github.sha}})"
+          allowUpdates: true
+          replacesArtifacts: true
+          generateReleaseNotes: false
+          artifactErrorsFailBuild: true
+          token: ${{ secrets.ACCESS_TOKEN }}
+          name: "Build (${{github.sha}})"
+          tag: "build"
+          artifacts: "telegram-bot-api-linux_${{matrix.arch}}.zip"
