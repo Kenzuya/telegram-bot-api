@@ -7,6 +7,12 @@ on:
 jobs:
   build-linux:
     name: Build Telegram
+    strategy:
+      matrix:
+        include:
+          - arch: x86_64
+            tag: linux-x64
+            build_machine_arch: x86_64
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -51,18 +57,18 @@ jobs:
           echo "Using Directory $(pwd)"
       - name: Packing into zip file
         run: |
-          zip -r telegram-bot-api-linux_$(uname -m).zip bin
+          zip -r telegram-bot-api-${{matrix.tag}}.zip bin
       - name: Publish Build
         id: release
         uses: ncipollo/release-action@v1
         with:
-          prerelease: true
-          body: "Build ini berdasarkan commit (${{ github.sha}})"
+          prerelease: false
+          body: "This build is based on the commit (${{ github.sha}})"
           allowUpdates: true
           replacesArtifacts: true
           generateReleaseNotes: false
           artifactErrorsFailBuild: true
           token: ${{ secrets.ACCESS_TOKEN }}
           name: "Build (${{github.sha}})"
-          tag: "build"
-          artifacts: "telegram-bot-api-linux_$(uname -m).zip"
+          tag: "auto-build"
+          artifacts: "telegram-bot-api-${{matrix.tag}}.zip"
