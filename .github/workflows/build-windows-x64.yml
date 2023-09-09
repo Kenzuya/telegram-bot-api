@@ -1,0 +1,40 @@
+name: Build Telegram API on Windows
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "td/**/*"
+      - "telegram-bot-api/**/*"
+
+jobs:
+  build-windows:
+    name: Build Telegram
+    strategy:
+      matrix:
+        include:
+          - arch: x64
+            tag: windows-x64
+    runs-on: windows-latest
+    steps:
+      - name: Setup CMake
+        uses: threeal/cmake-action@v1.3.0
+      - name: Setup MS Build
+        uses: microsoft/setup-msbuild@v1.1
+      - name: Setup vcpkg
+        shell: pwsh
+        run: |
+          git clone https://github.com/Microsoft/vcpkg.git
+          cd vcpkg
+          ./bootstrap-vcpkg.bat
+          ./vcpkg.exe install gperf:${{matrix.arch}}-windows openssl:${{matrix.arch}}-windows zlib:${{matrix.arch}}-windows
+          cd ..
+          Remove-Item build -Force -Recurse -ErrorAction SilentlyContinue
+      - name: Building Telegram
+        shell: pwsh
+        run: |
+          mkdir build
+          cd build
+          cmake -A x64 -DCMAKE_INSTALL_PREFIX:PATH=.. -DCMAKE_TOOLCHAIN_FILE:FILEPATH=../vcpkg/scripts/buildsystems/vcpkg.cmake ..
+          cmake --build . --target install --config Release
+          cd ../..
