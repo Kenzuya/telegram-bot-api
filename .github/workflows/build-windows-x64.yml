@@ -18,6 +18,7 @@ jobs:
             tag: windows-x64
     runs-on: windows-latest
     steps:
+      - uses: actions/checkout@v2
       - name: Setup CMake
         uses: threeal/cmake-action@v1.3.0
       - name: Setup MS Build
