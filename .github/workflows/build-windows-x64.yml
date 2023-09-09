@@ -6,6 +6,7 @@ on:
     paths:
       - "td/**/*"
       - "telegram-bot-api/**/*"
+  workflow_dispatch:
 
 jobs:
   build-windows:
